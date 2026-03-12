@@ -1,49 +1,52 @@
-// database.ts
-import Dexie from 'dexie'
+import Dexie, { type EntityTable } from 'dexie'
+import type { Chat, Message, Folder, Prompt, Snippet } from '@/types/chat'
 
-export type ChatRole = 'user' | 'assistant' | 'system'
-
-export interface Config {
-  id?: number
-  model: string
-  systemPrompt: string
-  createdAt: Date
-}
-
-export interface Chat {
-  id?: number
-  name: string
-  model: string
-  createdAt: Date
-}
-
-export interface Message {
-  id?: number
-  chatId: number
-  role: ChatRole
-  content: string
-  meta?: any
-  context?: number[]
-  createdAt: Date
-}
-
-class ChatDatabase extends Dexie {
-  chats: Dexie.Table<Chat, number>
-  messages: Dexie.Table<Message, number>
-  config: Dexie.Table<Config, number>
+class OllamaGuiDatabase extends Dexie {
+  chats!: EntityTable<Chat, 'id'>
+  messages!: EntityTable<Message, 'id'>
+  folders!: EntityTable<Folder, 'id'>
+  prompts!: EntityTable<Prompt, 'id'>
+  snippets!: EntityTable<Snippet, 'id'>
 
   constructor() {
     super('ChatDatabase')
+
+    // v10: Original schema (preserved for migration compatibility)
     this.version(10).stores({
-      chats: '++id,name,model,createdAt',
-      messages: '++id,chatId,role,content,meta,context,createdAt',
-      config: '++id,model,systemPrompt,createdAt',
+      chats: '++id, name, model, createdAt',
+      messages: '++id, chatId, role, content, meta, context, createdAt',
+      config: '++id, model, systemPrompt, createdAt',
     })
 
-    this.chats = this.table('chats')
-    this.messages = this.table('messages')
-    this.config = this.table('config')
+    // v11: Extended schema with new features
+    this.version(11)
+      .stores({
+        chats:
+          '++id, name, model, createdAt, folderId, pinned, archived, lastMessageAt',
+        messages:
+          '++id, chatId, role, content, meta, context, createdAt, parentId, bookmarked, branchId',
+        folders: '++id, name, parentId, order, createdAt',
+        prompts: '++id, title, content, category, createdAt',
+        snippets: '++id, title, content, tags, messageId, createdAt',
+        config: '++id, model, systemPrompt, createdAt',
+      })
+      .upgrade((tx) => {
+        return tx
+          .table('chats')
+          .toCollection()
+          .modify((chat) => {
+            if (!chat.lastMessageAt) {
+              chat.lastMessageAt = chat.createdAt
+            }
+            if (chat.pinned === undefined) {
+              chat.pinned = false
+            }
+            if (chat.archived === undefined) {
+              chat.archived = false
+            }
+          })
+      })
   }
 }
 
-export const db = new ChatDatabase()
+export const db = new OllamaGuiDatabase()

@@ -1,17 +1,38 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { resolve } from 'path'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  // Shh....
-  build: { chunkSizeWarningLimit: 1500 },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+    },
+  },
+  build: {
+    chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'markdown': ['markdown-it', 'highlight.js'],
+        },
+      },
+    },
+  },
   server: {
-    proxy: process.env.VITE_NO_PROXY ? {} : {
-      '/api': {
-        target: 'http://localhost:11434',
-        changeOrigin: true,
-      }
-    }
-  }
+    port: 8081,
+    host: '0.0.0.0',
+    proxy: process.env.VITE_NO_PROXY
+      ? {}
+      : {
+          '/api': {
+            target: 'http://localhost:11434',
+            changeOrigin: true,
+          },
+        },
+  },
+  preview: {
+    port: 8081,
+    host: '0.0.0.0',
+  },
 })
