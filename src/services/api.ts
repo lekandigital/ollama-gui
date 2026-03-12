@@ -144,24 +144,50 @@ export const useApi = () => {
     }
 
     const reader = res.body?.getReader()
+    const decoder = new TextDecoder()
     let results: ChatResponse[] = []
 
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) {
-          break
-        }
+    if (!reader) {
+      const json = (await res.json()) as ChatResponse
+      onDataReceived(json)
+      results.push(json)
+      return results
+    }
 
-        try {
-          const chunk = new TextDecoder().decode(value)
-          const parsedChunk: ChatPartResponse = JSON.parse(chunk)
+    let buffer = ''
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) {
+        break
+      }
 
-          onDataReceived(parsedChunk)
-          results.push(parsedChunk)
-        } catch (e) {
-          // Carry on...
+      buffer += decoder.decode(value, { stream: true })
+
+      let newlineIndex = buffer.indexOf('\n')
+      while (newlineIndex !== -1) {
+        const line = buffer.slice(0, newlineIndex).trim()
+        buffer = buffer.slice(newlineIndex + 1)
+        if (line) {
+          try {
+            const parsedChunk = JSON.parse(line) as ChatResponse
+            onDataReceived(parsedChunk)
+            results.push(parsedChunk)
+          } catch (e) {
+            // Carry on...
+          }
         }
+        newlineIndex = buffer.indexOf('\n')
+      }
+    }
+
+    const remaining = buffer.trim()
+    if (remaining) {
+      try {
+        const parsedChunk = JSON.parse(remaining) as ChatResponse
+        onDataReceived(parsedChunk)
+        results.push(parsedChunk)
+      } catch (e) {
+        // Carry on...
       }
     }
 

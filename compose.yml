@@ -1,9 +1,11 @@
 services:
   ollama:
     image: ollama/ollama
+    environment:
+      - OLLAMA_ORIGINS=*
     container_name: ollama
     ports:
-      - 11434:11434
+      - 11435:11434
     # deploy:
     #   resources:
     #     reservations:
@@ -12,9 +14,9 @@ services:
     #           count: all
     #           capabilities: [gpu]
     volumes:
-      - ./ollama_data/:/root/.ollama
+      - /home/o/.ollama/models:/root/.ollama/models
   ollama-gui:
     container_name: ollama_gui
     build: .
     ports:
-      - 8080:80
+      - 8081:80

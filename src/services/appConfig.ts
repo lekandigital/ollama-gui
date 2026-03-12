@@ -3,6 +3,10 @@ import gravatarUrl from 'gravatar-url'
 import { computed } from 'vue'
 import { Config, db } from './database'
 
+// Use Nginx reverse proxy to reach Ollama backend
+const fallbackBaseUrl = '/api'
+const defaultBaseUrl = '/api'
+
 export const currentModel = useLocalStorage('currentModel', 'none')
 export const gravatarEmail = useLocalStorage('gravatarEmail', '')
 export const historyMessageLength = useLocalStorage('historyMessageLength', 10)
@@ -12,7 +16,13 @@ export const avatarUrl = computed(() => gravatarEmail.value
 )
 export const enableMarkdown = useLocalStorage('markdown', true)
 export const showSystem = useLocalStorage('systemMessages', true)
-export const baseUrl = useLocalStorage('baseUrl', 'http://localhost:11434/api')
+export const baseUrl = useLocalStorage('baseUrl', defaultBaseUrl)
+
+// Force update to proxy URL if user has old cached external URL
+if (typeof window !== 'undefined' && (baseUrl.value.includes('11434') || baseUrl.value.includes('11435') || baseUrl.value.includes('localhost'))) {
+  baseUrl.value = defaultBaseUrl
+}
+
 export const isDarkMode = useLocalStorage('darkMode', true)
 export const isSettingsOpen = useLocalStorage('settingsPanelOpen', true)
 export const isSystemPromptOpen = useLocalStorage('systemPromptOpen', false)
