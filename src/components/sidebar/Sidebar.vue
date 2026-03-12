@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { IconPlus, IconSettings, IconMoon, IconSun, IconSearch } from '@tabler/icons-vue'
+import { IconPlus, IconSettings, IconMoon, IconSun, IconSearch, IconMessage } from '@tabler/icons-vue'
 import { useChatStore } from '@/stores/chatStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useUiStore } from '@/stores/uiStore'
@@ -60,6 +60,13 @@ async function handleNewChat() {
       >
         <IconSun v-if="settings.theme === 'dark'" :size="18" />
         <IconMoon v-else :size="18" />
+      </button>
+      <button
+        @click="ui.toggleSystemPrompt()"
+        class="rounded-md p-2 text-text-secondary transition-colors hover:bg-surface-2 hover:text-text-primary"
+        title="System Prompt"
+      >
+        <IconMessage :size="18" />
       </button>
       <button
         @click="ui.toggleSettings()"
