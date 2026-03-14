@@ -24,8 +24,8 @@ dist-ssr
 *.sw?
 
 
-# As long as you live under my roof, you will use yarn and enjoy it.
-package-lock.json
+# Lock files (using npm now)
+yarn.lock
 .vercel
 .aider*
 
