@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconMenu2 } from '@tabler/icons-vue'
+import { IconMenu2, IconCpu } from '@tabler/icons-vue'
 import { useChatStore } from '@/stores/chatStore'
 import { useUiStore } from '@/stores/uiStore'
 import ModelSelector from '@/components/settings/ModelSelector.vue'
@@ -31,5 +31,14 @@ const ui = useUiStore()
 
     <!-- Model selector -->
     <ModelSelector v-if="chat.activeChat" />
+
+    <!-- Model manager button -->
+    <button
+      @click="ui.modelManagerOpen = true"
+      class="rounded-md p-2 text-text-secondary transition-colors hover:bg-surface-2 hover:text-text-primary"
+      title="Model Manager"
+    >
+      <IconCpu :size="18" />
+    </button>
   </header>
 </template>

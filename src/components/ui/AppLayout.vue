@@ -5,6 +5,7 @@ import ChatView from '@/components/chat/ChatView.vue'
 import ConnectionStatus from '@/components/settings/ConnectionStatus.vue'
 import SettingsPanel from '@/components/settings/SettingsPanel.vue'
 import SystemPromptPanel from '@/components/settings/SystemPromptPanel.vue'
+import ModelManager from '@/components/models/ModelManager.vue'
 
 const ui = useUiStore()
 </script>
@@ -67,6 +68,11 @@ const ui = useUiStore()
 
     <!-- Connection status indicator -->
     <ConnectionStatus />
+
+    <!-- Model manager modal -->
+    <Teleport to="body">
+      <ModelManager v-if="ui.modelManagerOpen" />
+    </Teleport>
   </div>
 </template>
 
