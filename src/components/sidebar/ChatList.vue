@@ -37,6 +37,7 @@ function handleSelect(chatId: number) {
       @delete="chat.deleteChat(c.id!)"
       @rename="(name) => chat.renameChat(c.id!, name)"
       @pin="chat.togglePin(c.id!)"
+      @duplicate="chat.duplicateChat(c.id!)"
     />
   </div>
 </template>

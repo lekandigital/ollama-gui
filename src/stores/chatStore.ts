@@ -360,6 +360,94 @@ export const useChatStore = defineStore('chat', () => {
     activeChatId.value = null
   }
 
+  async function duplicateChat(chatId: number) {
+    const source = chats.value.find((c) => c.id === chatId)
+    if (!source) return
+
+    const sourceMessages = await db.messages
+      .where('chatId')
+      .equals(chatId)
+      .toArray()
+
+    const newChat: Chat = {
+      name: `${source.name} (copy)`,
+      model: source.model,
+      createdAt: new Date(),
+      lastMessageAt: new Date(),
+      pinned: false,
+      archived: false,
+      tags: source.tags ? [...source.tags] : undefined,
+    }
+
+    const newId = (await db.chats.add(newChat)) as number
+    newChat.id = newId
+
+    const newMessages = sourceMessages.map((m) => ({
+      ...m,
+      id: undefined,
+      chatId: newId,
+      createdAt: new Date(m.createdAt),
+    }))
+    await db.messages.bulkAdd(newMessages)
+
+    chats.value.unshift(newChat)
+    await selectChat(newId)
+  }
+
+  async function addTag(chatId: number, tag: string) {
+    const chat = chats.value.find((c) => c.id === chatId)
+    if (!chat) return
+    const tags = chat.tags ? [...chat.tags] : []
+    if (!tags.includes(tag)) {
+      tags.push(tag)
+      chat.tags = tags
+      await db.chats.update(chatId, { tags })
+    }
+  }
+
+  async function removeTag(chatId: number, tag: string) {
+    const chat = chats.value.find((c) => c.id === chatId)
+    if (!chat?.tags) return
+    chat.tags = chat.tags.filter((t) => t !== tag)
+    await db.chats.update(chatId, { tags: chat.tags })
+  }
+
+  async function toggleBookmark(messageId: number) {
+    const msg = messages.value.find((m) => m.id === messageId)
+    if (!msg) return
+    msg.bookmarked = !msg.bookmarked
+    await db.messages.update(messageId, { bookmarked: msg.bookmarked })
+  }
+
+  const bookmarkedMessages = computed(() =>
+    messages.value.filter((m) => m.bookmarked),
+  )
+
+  const allTags = computed(() => {
+    const tagSet = new Set<string>()
+    for (const c of chats.value) {
+      if (c.tags) c.tags.forEach((t) => tagSet.add(t))
+    }
+    return Array.from(tagSet).sort()
+  })
+
+  async function searchAllChats(query: string): Promise<Array<{ chat: Chat; message: Message }>> {
+    if (!query.trim()) return []
+    const q = query.toLowerCase()
+    const allMessages = await db.messages.toArray()
+    const results: Array<{ chat: Chat; message: Message }> = []
+
+    for (const msg of allMessages) {
+      if (msg.content.toLowerCase().includes(q)) {
+        const chat = chats.value.find((c) => c.id === msg.chatId)
+        if (chat) {
+          results.push({ chat, message: msg })
+        }
+      }
+    }
+    return results.slice(0, 50)
+  }
+
   function setSystemPrompt(model: string, prompt: string) {
     systemPrompts.value.set(model, prompt)
     localStorage.setItem(
@@ -415,5 +503,12 @@ export const useChatStore = defineStore('chat', () => {
     wipeAllData,
     setSystemPrompt,
     loadSystemPrompts,
+    duplicateChat,
+    addTag,
+    removeTag,
+    toggleBookmark,
+    bookmarkedMessages,
+    allTags,
+    searchAllChats,
   }
 })

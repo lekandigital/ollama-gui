@@ -6,6 +6,7 @@ import ConnectionStatus from '@/components/settings/ConnectionStatus.vue'
 import SettingsPanel from '@/components/settings/SettingsPanel.vue'
 import SystemPromptPanel from '@/components/settings/SystemPromptPanel.vue'
 import ModelManager from '@/components/models/ModelManager.vue'
+import CommandPalette from '@/components/ui/CommandPalette.vue'
 
 const ui = useUiStore()
 </script>
@@ -69,10 +70,11 @@ const ui = useUiStore()
     <!-- Connection status indicator -->
     <ConnectionStatus />
 
-    <!-- Model manager modal -->
+    <!-- Modals -->
     <Teleport to="body">
       <ModelManager v-if="ui.modelManagerOpen" />
     </Teleport>
+    <CommandPalette />
   </div>
 </template>
 

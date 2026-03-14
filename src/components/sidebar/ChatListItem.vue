@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { IconTrash, IconEdit, IconPin, IconPinFilled } from '@tabler/icons-vue'
+import { IconTrash, IconEdit, IconPin, IconPinFilled, IconCopy } from '@tabler/icons-vue'
 import { formatDistanceToNow } from 'date-fns'
 import type { Chat } from '@/types/chat'
 
@@ -14,6 +14,7 @@ const emit = defineEmits<{
   delete: []
   rename: [name: string]
   pin: []
+  duplicate: []
 }>()
 
 const isEditing = ref(false)
@@ -87,6 +88,13 @@ const timeAgo = formatDistanceToNow(
       >
         <IconPinFilled v-if="chat.pinned" :size="14" />
         <IconPin v-else :size="14" />
+      </button>
+      <button
+        @click.stop="emit('duplicate')"
+        class="rounded p-1 text-text-muted hover:bg-surface-3 hover:text-text-primary"
+        title="Duplicate"
+      >
+        <IconCopy :size="14" />
       </button>
       <button
         @click.stop="startRename"

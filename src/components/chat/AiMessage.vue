@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { formatDistanceToNow } from 'date-fns'
-import { IconCopy, IconCheck } from '@tabler/icons-vue'
+import { IconCopy, IconCheck, IconBookmark, IconBookmarkFilled } from '@tabler/icons-vue'
 import type { Message } from '@/types/chat'
 import { useSettingsStore } from '@/stores/settingsStore'
+import { useChatStore } from '@/stores/chatStore'
 import Markdown from '@/components/markdown/Markdown.vue'
 import ThinkBlock from './ThinkBlock.vue'
 import ResponseMetrics from './ResponseMetrics.vue'
@@ -13,6 +14,7 @@ const props = defineProps<{
 }>()
 
 const settings = useSettingsStore()
+const chat = useChatStore()
 const showTime = ref(false)
 const copied = ref(false)
 
@@ -63,15 +65,26 @@ async function copyMessage() {
     <!-- Content -->
     <div class="min-w-0 flex-1 space-y-2">
       <div class="relative rounded-2xl rounded-tl-md bg-surface-2 px-4 py-3">
-        <!-- Copy button -->
-        <button
-          @click="copyMessage"
-          class="absolute right-2 top-2 rounded-md p-1 text-text-muted opacity-0 transition-all hover:bg-surface-3 hover:text-text-primary group-hover:opacity-100"
-          title="Copy message"
-        >
-          <IconCheck v-if="copied" :size="14" class="text-success" />
-          <IconCopy v-else :size="14" />
-        </button>
+        <!-- Action buttons -->
+        <div class="absolute right-2 top-2 flex gap-0.5 opacity-0 transition-all group-hover:opacity-100">
+          <button
+            v-if="message.id"
+            @click="chat.toggleBookmark(message.id)"
+            class="rounded-md p-1 text-text-muted hover:bg-surface-3 hover:text-accent"
+            :title="message.bookmarked ? 'Remove bookmark' : 'Bookmark'"
+          >
+            <IconBookmarkFilled v-if="message.bookmarked" :size="14" class="text-accent" />
+            <IconBookmark v-else :size="14" />
+          </button>
+          <button
+            @click="copyMessage"
+            class="rounded-md p-1 text-text-muted hover:bg-surface-3 hover:text-text-primary"
+            title="Copy message"
+          >
+            <IconCheck v-if="copied" :size="14" class="text-success" />
+            <IconCopy v-else :size="14" />
+          </button>
+        </div>
 
         <!-- Message parts -->
         <template v-for="(part, i) in parsed" :key="i">

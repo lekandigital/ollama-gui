@@ -1,9 +1,18 @@
 import { defineStore } from 'pinia'
 import { useLocalStorage } from '@vueuse/core'
-import type { ThemeMode } from '@/types/settings'
+import type { ThemeMode, ThemePreset } from '@/types/settings'
+
+export const THEME_PRESETS: { id: ThemePreset; label: string; mode: ThemeMode }[] = [
+  { id: 'default-dark', label: 'Default Dark', mode: 'dark' },
+  { id: 'default-light', label: 'Default Light', mode: 'light' },
+  { id: 'hacker', label: 'Hacker', mode: 'dark' },
+  { id: 'paper', label: 'Paper', mode: 'light' },
+  { id: 'high-contrast', label: 'High Contrast', mode: 'dark' },
+]
 
 export const useSettingsStore = defineStore('settings', () => {
   const theme = useLocalStorage<ThemeMode>('theme', 'dark')
+  const themePreset = useLocalStorage<ThemePreset>('themePreset', 'default-dark')
   const enableMarkdown = useLocalStorage('markdown', true)
   const showSystemMessages = useLocalStorage('systemMessages', true)
   const historyLength = useLocalStorage('historyMessageLength', 10)
@@ -24,17 +33,38 @@ export const useSettingsStore = defineStore('settings', () => {
 
   function applyTheme() {
     const root = document.documentElement
-    root.classList.remove('dark', 'light')
+    // Remove all theme classes
+    root.classList.remove(
+      'dark', 'light',
+      'theme-default-dark', 'theme-default-light',
+      'theme-hacker', 'theme-paper', 'theme-high-contrast',
+    )
+    // Apply mode class (dark/light) and preset class
     root.classList.add(theme.value)
+    root.classList.add(`theme-${themePreset.value}`)
+  }
+
+  function setThemePreset(preset: ThemePreset) {
+    themePreset.value = preset
+    const presetConfig = THEME_PRESETS.find((p) => p.id === preset)
+    if (presetConfig) {
+      theme.value = presetConfig.mode
+    }
+    applyTheme()
   }
 
   function toggleTheme() {
-    theme.value = theme.value === 'dark' ? 'light' : 'dark'
-    applyTheme()
+    // Quick toggle between default dark/light
+    if (theme.value === 'dark') {
+      setThemePreset('default-light')
+    } else {
+      setThemePreset('default-dark')
+    }
   }
 
   return {
     theme,
+    themePreset,
     enableMarkdown,
     showSystemMessages,
     historyLength,
@@ -45,5 +75,6 @@ export const useSettingsStore = defineStore('settings', () => {
     sendOnEnter,
     applyTheme,
     toggleTheme,
+    setThemePreset,
   }
 })
