@@ -30,8 +30,7 @@ const isExpanded = computed(() => props.isStreaming || expanded.value)
     <!-- Toggle button -->
     <button
       @click="expanded = !expanded"
-      class="flex items-center gap-0.5"
-      :class="isStreaming ? 'pointer-events-none' : 'cursor-pointer'"
+      class="flex cursor-pointer items-center gap-0.5"
     >
       <span
         class="text-sm font-medium"

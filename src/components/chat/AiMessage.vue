@@ -43,7 +43,19 @@ const parsed = computed(() => {
 })
 
 async function copyMessage() {
-  await navigator.clipboard.writeText(props.message.content)
+  try {
+    await navigator.clipboard.writeText(props.message.content)
+  } catch {
+    // Fallback for non-HTTPS contexts (e.g. LAN access)
+    const ta = document.createElement('textarea')
+    ta.value = props.message.content
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+  }
   copied.value = true
   setTimeout(() => { copied.value = false }, 2000)
 }

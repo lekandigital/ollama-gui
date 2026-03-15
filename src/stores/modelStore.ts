@@ -4,29 +4,47 @@ import { useLocalStorage } from '@vueuse/core'
 import type { OllamaModel } from '@/types/ollama'
 import { listModels } from '@/services/ollama'
 
-const MODEL_RANKINGS: Record<string, { rank: number; stars: string }> = {
-  'behemoth-123b': { rank: 1, stars: '\u2605\u2605\u2605\u2605\u2605' },
-  'huihui_ai/qwen3-abliterated:30b-a3b': { rank: 2, stars: '\u2605\u2605\u2605\u2605\u2605' },
-  'qwen3-uncensored': { rank: 3, stars: '\u2605\u2605\u2605\u2605\u2605' },
-  'huihui_ai/gemma3-abliterated:27b': { rank: 4, stars: '\u2605\u2605\u2605\u2605\u2606' },
-  'gemma3-uncensored': { rank: 5, stars: '\u2605\u2605\u2605\u2605\u2606' },
-  'huihui_ai/phi4-abliterated': { rank: 6, stars: '\u2605\u2605\u2605\u2605\u2606' },
-  'phi4-uncensored': { rank: 7, stars: '\u2605\u2605\u2605\u2605\u2606' },
-  'huihui_ai/nemotron-abliterated': { rank: 8, stars: '\u2605\u2605\u2605\u2605\u2606' },
-  'mixtral:8x7b': { rank: 9, stars: '\u2605\u2605\u2605\u2605\u2606' },
-  'huihui_ai/glm-4.7-flash-abliterated': { rank: 10, stars: '\u2605\u2605\u2605\u2606\u2606' },
-  'glm4-uncensored': { rank: 11, stars: '\u2605\u2605\u2605\u2606\u2606' },
-  'huihui_ai/gpt-oss-abliterated': { rank: 12, stars: '\u2605\u2605\u2605\u2606\u2606' },
-  'mistral:latest': { rank: 13, stars: '\u2605\u2605\u2605\u2606\u2606' },
-  'Godmoded/llama3-lexi-uncensored': { rank: 14, stars: '\u2605\u2605\u2605\u2606\u2606' },
-  'falcon:7b': { rank: 15, stars: '\u2605\u2605\u2606\u2606\u2606' },
+interface ModelMeta {
+  rank: number
+  stars: string
+  reasoning: boolean
+}
+
+const MODEL_RANKINGS: Record<string, ModelMeta> = {
+  // Tier 1 — Best overall (5 stars)
+  'qwen35-claude-opus-abliterated': { rank: 1, stars: '★★★★★', reasoning: true },
+  'behemoth-123b': { rank: 2, stars: '★★★★★', reasoning: true },
+  'huihui_ai/qwen3-abliterated:30b-a3b': { rank: 3, stars: '★★★★★', reasoning: true },
+  'qwen3-uncensored': { rank: 4, stars: '★★★★★', reasoning: true },
+  // Tier 2 — Strong (4 stars)
+  'huihui_ai/gemma3-abliterated:27b': { rank: 5, stars: '★★★★☆', reasoning: false },
+  'gemma3-uncensored': { rank: 6, stars: '★★★★☆', reasoning: false },
+  'huihui_ai/phi4-abliterated': { rank: 7, stars: '★★★★☆', reasoning: true },
+  'phi4-uncensored': { rank: 8, stars: '★★★★☆', reasoning: true },
+  'huihui_ai/nemotron-abliterated': { rank: 9, stars: '★★★★☆', reasoning: false },
+  'mixtral:8x7b': { rank: 10, stars: '★★★★☆', reasoning: false },
+  // Tier 3 — Good (3 stars)
+  'huihui_ai/glm-4.7-flash-abliterated': { rank: 11, stars: '★★★☆☆', reasoning: false },
+  'glm4-uncensored': { rank: 12, stars: '★★★☆☆', reasoning: false },
+  'huihui_ai/gpt-oss-abliterated': { rank: 13, stars: '★★★☆☆', reasoning: false },
+  'mistral:latest': { rank: 14, stars: '★★★☆☆', reasoning: false },
+  'Godmoded/llama3-lexi-uncensored': { rank: 15, stars: '★★★☆☆', reasoning: false },
+  // Tier 4 — Basic (2 stars)
+  'falcon:7b': { rank: 16, stars: '★★☆☆☆', reasoning: false },
   'Malicus7862/thebloke-luna-ai-llama2-uncensored-gguf': {
-    rank: 16,
-    stars: '\u2605\u2605\u2606\u2606\u2606',
+    rank: 17,
+    stars: '★★☆☆☆',
+    reasoning: false,
   },
 }
 
-function getModelRanking(modelName: string): { rank: number; stars: string } {
+// Models with known reasoning/thinking capability (match by substring)
+const REASONING_PATTERNS = [
+  'qwen3', 'deepseek-r1', 'deepseek-r2', 'phi4', 'behemoth',
+  'claude-opus', 'o1', 'o3', 'o4',
+]
+
+function getModelRanking(modelName: string): ModelMeta {
   if (MODEL_RANKINGS[modelName]) return MODEL_RANKINGS[modelName]
 
   const withoutTag = modelName.replace(/:latest$/, '')
@@ -43,11 +61,15 @@ function getModelRanking(modelName: string): { rank: number; stars: string } {
     }
   }
 
-  return { rank: 99, stars: '\u2606\u2606\u2606\u2606\u2606' }
+  // Check if model matches reasoning patterns even if not in rankings
+  const nameLower = modelName.toLowerCase()
+  const isReasoning = REASONING_PATTERNS.some((p) => nameLower.includes(p))
+
+  return { rank: 99, stars: '☆☆☆☆☆', reasoning: isReasoning }
 }
 
 export interface RankedModel extends OllamaModel {
-  ranking: { rank: number; stars: string }
+  ranking: ModelMeta
   displayName: string
 }
 
@@ -66,7 +88,7 @@ export const useModelStore = defineStore('models', () => {
       .sort((a, b) => a.ranking.rank - b.ranking.rank)
       .map((model, index) => ({
         ...model,
-        displayName: `${index + 1}. ${model.ranking.stars} ${model.name}`,
+        displayName: `${index + 1}. ${model.ranking.stars} ${model.ranking.reasoning ? '🧠 ' : ''}${model.name}`,
       }))
   })
 

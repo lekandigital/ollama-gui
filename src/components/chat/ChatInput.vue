@@ -226,7 +226,7 @@ interface SpeechRecognitionAlternative {
           @click="selectModelFromSuggestion(m.name)"
           class="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs text-text-secondary transition-colors hover:bg-surface-3 hover:text-text-primary"
         >
-          <span class="truncate">{{ m.ranking.stars }} {{ m.name }}</span>
+          <span class="truncate">{{ m.ranking.stars }} {{ m.ranking.reasoning ? '🧠 ' : '' }}{{ m.name }}</span>
           <span class="ml-auto text-2xs text-text-muted">{{ m.details.parameter_size }}</span>
         </button>
         <div v-if="!filteredModels.length" class="px-2 py-1 text-xs text-text-muted">No matching models</div>
