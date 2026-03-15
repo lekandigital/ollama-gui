@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ollama-gui-v2'
+const CACHE_NAME = 'ollama-gui-v3'
 const STATIC_ASSETS = ['/', '/index.html', '/logo.png']
 
 self.addEventListener('install', (event) => {
