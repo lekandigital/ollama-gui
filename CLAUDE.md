@@ -1,152 +1,88 @@
-# CLAUDE.md
+# CLAUDE.md -- Developer Guide for AI Assistants
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This is an Ollama chat GUI built with Vue 3.5, Vite 6, Pinia, Tailwind CSS, and TypeScript in strict mode.
 
-## Project Overview
+## Project Structure
 
-Ollama GUI is a Vue.js 3 web interface for interacting with local LLMs through Ollama. It's a privacy-focused chat application where all processing happens locally.
+```
+src/
+  App.vue                  -- Root layout, wires together sidebar + chat area
+  main.ts                  -- App entry point, registers Pinia and global styles
+  types/
+    chat.ts                -- Chat, Message, Bookmark types
+    ollama.ts              -- Ollama API request/response types
+    settings.ts            -- Settings and theme types
+  services/
+    database.ts            -- Dexie (IndexedDB) schema and database instance
+    ollama.ts              -- Ollama HTTP client: list models, chat, pull, delete, streaming
+  stores/
+    chatStore.ts           -- Chat CRUD, message management, active chat state
+    connectionStore.ts     -- Ollama server connection status
+    modelStore.ts          -- Model list, pull/delete, star rankings
+    settingsStore.ts       -- Theme, preferences, import/export
+    uiStore.ts             -- Sidebar visibility, modals, transient UI state
+  components/
+    chat/                  -- Message list, input area, streaming display, think blocks
+    sidebar/               -- Chat list, search, navigation
+    settings/              -- Settings panel, theme picker
+    models/                -- Model manager, pull UI, star rankings
+    markdown/              -- Markdown renderer, code blocks with syntax highlighting
+    ui/                    -- Shared primitives (buttons, modals, dropdowns, badges)
+  composables/
+    useAutoTitle.ts        -- Auto-generates chat titles from first message
+    useKeyboardShortcuts.ts -- Global keyboard shortcut bindings
+  design/
+    base.css               -- Reset and global base styles
+    tailwind.css           -- Tailwind directives (@tailwind base/components/utilities)
+    tokens.css             -- CSS custom properties for theming
+```
 
-## Development Commands
+## Key Patterns
+
+**State management:** All application state flows through Pinia stores. Components read from stores via `storeToRefs()` and dispatch actions. Never mutate store state directly from components.
+
+**Theming:** Five theme presets implemented via CSS custom properties defined in `src/design/tokens.css`. The active theme class is applied to the root element. Tailwind classes reference these tokens.
+
+**Custom design tokens:** Tailwind is extended with semantic color tokens:
+- `surface-0` through `surface-3` -- Background layers (0 = deepest, 3 = most elevated)
+- `accent` -- Primary action color
+- `text-primary`, `text-secondary`, `text-muted` -- Text hierarchy
+
+**Streaming:** Chat responses stream via async generators in `src/services/ollama.ts`. The chat store consumes the generator and appends tokens to the active message reactively.
+
+**Database:** Dexie wraps IndexedDB for persistent storage of chats, messages, and settings. The database schema is in `src/services/database.ts`.
+
+**Path aliases:** `@` maps to `src/` (configured in `vite.config.ts`).
+
+## Commands
 
 ```bash
-# Install dependencies
-yarn install
-
-# Start development server
-yarn dev
-
-# Start dev server with network access
-yarn dev --host
-
-# Build for production (includes TypeScript checking)
-yarn build
-
-# Preview production build
-yarn preview
-
-# Format code with Prettier
-yarn format
-
-# Run Ollama with CORS for hosted version
-OLLAMA_ORIGINS=https://ollama-gui.vercel.app ollama serve
-
-# Docker commands
-docker compose up -d  # Start both Ollama and GUI
-docker build -t ollama-gui .  # Build production image
+npm run dev        # Start dev server on port 8081
+npm run build      # Type-check then build for production
+npm run typecheck  # Run vue-tsc --noEmit
+npm run format     # Prettier with Tailwind plugin
+npm run preview    # Preview production build on port 8081
 ```
 
-### Development Proxy
-The development server includes an automatic proxy that forwards `/api` requests to `http://localhost:11434`. This allows:
-- Seamless local development without CORS issues
-- Network access when using `yarn dev --host` - other devices can access both UI and API
-- Zero configuration required
+## How to Add a New Feature
 
-To disable the proxy (e.g., when using a custom Ollama endpoint):
-```bash
-VITE_NO_PROXY=true yarn dev
-```
+1. **Define types** in `src/types/` if the feature introduces new data shapes.
+2. **Create or extend a Pinia store** in `src/stores/` for any new state or logic.
+3. **Build the component** in the appropriate `src/components/` subdirectory.
+4. **Wire it into the layout** -- either add it to `App.vue` or nest it within an existing component tree.
+5. **Add keyboard shortcuts** in `src/composables/useKeyboardShortcuts.ts` if applicable.
+6. **Update the database schema** in `src/services/database.ts` if persisting new data.
 
-## Architecture Overview
+## Code Conventions
 
-### Component-Based Architecture
-- **Presentation Layer**: Vue 3 components with Composition API
-- **Service Layer**: Business logic in composables (`/services/*.ts`)
-- **Data Layer**: IndexedDB via Dexie for local storage
-- **API Layer**: HTTP client for Ollama integration
+- TypeScript strict mode is enabled. Do not use `any`.
+- Use Vue 3 `<script setup lang="ts">` for all components.
+- Use Composition API exclusively; no Options API.
+- Tailwind utility classes for styling; avoid inline styles.
+- Imports use the `@/` path alias (e.g., `import { useChatStore } from '@/stores/chatStore'`).
 
-### Key Services
-- `services/chat.ts`: Central chat management and state
-- `services/api.ts`: Ollama API client with streaming support
-- `services/database.ts`: Dexie schema for chats, messages, and configs
-- `services/appConfig.ts`: App settings and configuration
-- `services/useAI.ts`: AI generation orchestration
+## Docker
 
-### Data Flow Pattern
-1. User input → Component → Service composable
-2. Service updates reactive state and persists to IndexedDB
-3. API calls to Ollama (with streaming for AI responses)
-4. Reactive updates propagate to UI components
-
-### State Management
-- Uses Vue 3 composables pattern (no Vuex/Pinia)
-- Shared state via exported composables
-- Settings in localStorage via `@vueuse/core`
-- Chat data in IndexedDB
-
-## Component Structure
-
-```
-App.vue (Root layout)
-├── Sidebar.vue (Navigation, chat list)
-├── ChatMessages.vue (Message display container)
-│   └── ChatMessage.vue (Message wrapper)
-│       ├── UserMessage.vue
-│       ├── AiMessage.vue
-│       └── SystemMessage.vue
-├── ChatInput.vue (User input, regeneration)
-├── ModelSelector.vue (Model switching)
-├── SystemPrompt.vue (System message config)
-└── Settings.vue (App configuration)
-```
-
-## TypeScript Considerations
-- Strict mode enabled
-- Full type coverage across the codebase
-- Key interfaces in `services/database.ts`
-- Vue components use `<script setup lang="ts">`
-
-## Styling Guidelines
-- Tailwind CSS with dark mode support (class-based)
-- Typography plugin for markdown content
-- JetBrains Mono font for code blocks
-- Responsive design patterns using Tailwind utilities
-
-## API Integration
-- Ollama API endpoints: `/api/chat`, `/api/tags`, `/api/embeddings`
-- Streaming responses handled via fetch with reader
-- Abort controller for canceling requests
-- CORS configuration required for hosted deployments
-
-## Testing
-No testing framework is currently configured. Manual testing recommended for:
-- Chat creation and deletion
-- Message streaming and cancellation
-- Import/export functionality
-- Model switching
-- Dark mode toggle
-
-## Build Process
-- TypeScript checking runs before build (`vue-tsc --build --force`)
-- Vite handles bundling and optimization
-- Production build outputs to `dist/` directory
-- Chunk size warning limit set to 1500KB
-
-## Common Development Tasks
-
-### Adding a New Feature
-1. Create component in appropriate directory
-2. Add service logic to relevant composable
-3. Update database schema if needed (increment version)
-4. Follow existing patterns for state management
-
-### Modifying Chat Logic
-- Primary logic in `services/chat.ts`
-- Database operations abstracted through service layer
-- Maintain reactive state consistency
-
-### Working with Ollama API
-- All API calls through `services/api.ts`
-- Support streaming by default
-- Handle errors gracefully with user feedback
-
-## Important Notes
-- All data stored locally in browser (privacy-first)
-- No authentication or user management
-- Ollama must be running locally or accessible via network
-- Docker deployment includes both Ollama and GUI services
-
-## Key File Locations
-- Type definitions: `services/database.ts` (Chat, Message, OllamaConfig interfaces)
-- Markdown rendering: `services/markdown.ts` (highlight.js integration)
-- Error handling: Services return error states, components show user feedback
-- Environment: No .env files - all configuration via UI or Docker compose
+- `Dockerfile` -- Multi-stage build: Node 20 Alpine for build, Nginx Alpine for serving.
+- `compose.yml` -- Runs GUI (port 8081:80) and Ollama (port 11435:11434).
+- `nginx/default.conf` -- Proxies `/api/` to the Ollama container.

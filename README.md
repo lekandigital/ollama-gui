@@ -1,161 +1,109 @@
-<p align="center">
-  <img src=".github/header.png" alt="Ollama GUI logo">
-</p>
+# Ollama GUI v2
 
-<h1 align="center">Ollama GUI</h1>
-<p align="center">A modern web interface for chatting with your local LLMs through Ollama</p>
+A modern, feature-rich web interface for chatting with local LLMs through Ollama.
 
-<p align="center">
-  <a href="https://ollama.ai">
-    <img src="https://img.shields.io/badge/Powered%20by-Ollama-blue?style=flat-square" alt="Powered by Ollama">
-  </a>
-  <a href="https://github.com/HelgeSverre/ollama-gui/blob/main/LICENSE.md">
-    <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License">
-  </a>
-  <a href="https://ollama-gui.vercel.app">
-    <img src="https://img.shields.io/badge/Demo-Live-success?style=flat-square" alt="Live Demo">
-  </a>
-</p>
+## Features
 
-## ✨ Features
+- **Chat Management** -- Create, rename, delete, and search conversations with full CRUD support
+- **Streaming Responses** -- Real-time token streaming with stop/cancel support
+- **Model Management** -- Pull, delete, and organize models with star rankings for favorites
+- **5 Theme Presets** -- Switch between built-in color themes using CSS custom properties
+- **Markdown Rendering** -- Full markdown support with syntax-highlighted code blocks via highlight.js
+- **Think Block Support** -- Collapsible display of model reasoning/thinking blocks
+- **Keyboard Shortcuts** -- Navigate and control the app without leaving the keyboard
+- **Progressive Web App (PWA)** -- Installable on desktop and mobile
+- **Global Search** -- Search across all conversations from the sidebar
+- **Statistics** -- Token counts and usage statistics per conversation
+- **Bookmarks** -- Bookmark important messages for quick reference
+- **Image Support** -- Attach images for vision-capable models (LLaVA, etc.)
+- **Import/Export** -- Back up and restore conversations as JSON
+- **Responsive Mobile-First Design** -- Fully usable on phones, tablets, and desktops
 
-- 🖥️ Clean, modern interface for interacting with Ollama models
-- 💾 Local chat history using IndexedDB
-- 📝 Full Markdown support in messages
-- 🌙 Dark mode support
-- 🚀 Fast and responsive
-- 🔒 Privacy-focused: All processing happens locally
-- 🌐 Development proxy for easy network access
+## Quick Start
 
-## 🚀 Quick Start
+### Prerequisites
 
-### Prerequisites (only needed for local development)
-
-1. Install [Ollama](https://ollama.ai/download)
-2. Install [Node.js](https://nodejs.org/) (v16+) and [Yarn](https://classic.yarnpkg.com/lang/en/docs/install)
+1. Install [Ollama](https://ollama.ai/download) and pull at least one model
+2. Install [Node.js](https://nodejs.org/) (v18+)
 
 ### Local Development
 
 ```bash
-# Start Ollama server with your preferred model
-ollama pull mistral  # or any other model
+# Make sure Ollama is running
 ollama serve
 
-# Clone and run the GUI
-git clone https://github.com/HelgeSverre/ollama-gui.git
+# Clone and start the GUI
+git clone <repo-url>
 cd ollama-gui
-yarn install
-yarn dev
+npm install
+npm run dev
 ```
 
-#### Network Access (Development Only)
+The dev server starts at **http://localhost:8081** and proxies API requests to Ollama at `localhost:11434`.
 
-The development server includes an automatic proxy that forwards API requests to your local Ollama instance. This allows other devices on your network to access both the UI and Ollama API:
+To disable the built-in proxy (e.g., when pointing at a remote Ollama instance):
 
 ```bash
-# Start dev server with network access
-yarn dev --host
-
-# Access from other devices using your machine's IP
-# Example: http://192.168.1.100:5173
+VITE_NO_PROXY=true npm run dev
 ```
 
-**Note:** This proxy feature is only available during development with `yarn dev`. For production deployments, you'll need to configure CORS on your Ollama instance or use a reverse proxy.
-
-To disable the proxy (e.g., when using a custom Ollama endpoint):
-```bash
-VITE_NO_PROXY=true yarn dev
-```
-
-### Using the Hosted Version
-
-To use the [hosted version](https://ollama-gui.vercel.app), run Ollama with:
+### Production Build
 
 ```bash
-OLLAMA_ORIGINS=https://ollama-gui.vercel.app ollama serve
+npm run build
 ```
 
-### Docker Deployment
+The output in `dist/` is a static site that can be served by any web server.
 
-The Docker setup runs both Ollama and the GUI together, so no proxy or CORS configuration is needed. No need to install anything other than `docker`.
+## Docker Deployment
 
-> If you have GPU, please uncomment the following lines in the file `compose.yml`
-```Dockerfile
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [gpu]
-```
+The included `compose.yml` runs both the GUI and an Ollama instance together:
 
-#### Run
 ```bash
 docker compose up -d
-
-# Access at http://localhost:8080
 ```
 
-#### Stop
+- GUI is available at **http://localhost:8081**
+- Ollama API is exposed on port **11435** (mapped from container port 11434)
+
+To stop:
+
 ```bash
 docker compose down
 ```
 
-#### Download more models
+To pull additional models inside the container:
+
 ```bash
-# Enter the ollama container
 docker exec -it ollama bash
-
-# Inside the container
-ollama pull <model_name>
-
-# Example
 ollama pull deepseek-r1:7b
 ```
 
-Restart the containers using `docker compose restart`.
+If you have an NVIDIA GPU, uncomment the `deploy.resources` section in `compose.yml` to enable GPU passthrough.
 
-Models will get downloaded inside the folder `./ollama_data` in the repository. You can change it inside the `compose.yml`
+## Screenshots
 
-## 🏭 Production Deployment
+<!-- Add screenshots here -->
 
-When building the application for production (`yarn build`), the resulting static files do not include a proxy server. You have several options for production deployments:
+## Tech Stack
 
-### Option 1: Configure CORS on Ollama
-```bash
-# Allow your production domain
-OLLAMA_ORIGINS=https://your-domain.com ollama serve
-```
+| Layer         | Technology                                                    |
+|---------------|---------------------------------------------------------------|
+| Framework     | [Vue 3.5](https://vuejs.org/) with Composition API           |
+| Build Tool    | [Vite 6](https://vitejs.dev/)                                |
+| Language      | [TypeScript 5.7](https://www.typescriptlang.org/) (strict)   |
+| State         | [Pinia 2](https://pinia.vuejs.org/)                          |
+| Styling       | [Tailwind CSS 3.4](https://tailwindcss.com/)                 |
+| Database      | [Dexie 4](https://dexie.org/) (IndexedDB wrapper)            |
+| Markdown      | [markdown-it](https://github.com/markdown-it/markdown-it) + [highlight.js](https://highlightjs.org/) |
+| Utilities     | [VueUse](https://vueuse.org/), [date-fns](https://date-fns.org/) |
+| Icons         | [@tabler/icons-vue](https://tabler.io/icons)                 |
+| Container     | Docker + Nginx (production)                                   |
 
-### Option 2: Use a Reverse Proxy
-Set up a reverse proxy (nginx, Apache, Caddy) to forward `/api` requests to your Ollama instance.
+## Credits
 
-### Option 3: Use Docker Compose
-The provided Docker setup runs both services together, eliminating CORS issues:
-```bash
-docker compose up -d
-```
+Forked from [HelgeSverre/ollama-gui](https://github.com/HelgeSverre/ollama-gui). Original design inspired by [LangUI](https://www.langui.dev/).
 
-## 🛣️ Roadmap
-
-- [x] Chat history with IndexedDB
-- [x] Markdown message formatting
-- [x] Code cleanup and organization
-- [ ] Model library browser and installer
-- [ ] Mobile-responsive design
-- [ ] File uploads with OCR support
-
-## 🛠️ Tech Stack
-
-- [Vue.js](https://vuejs.org/) - Frontend framework
-- [Vite](https://vitejs.dev/) - Build tool
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
-- [VueUse](https://vueuse.org/) - Vue Composition Utilities
-- [@tabler/icons-vue](https://github.com/tabler/icons-vue) - Icons
-- Design inspired by [LangUI](https://www.langui.dev/)
-- Hosted on [Vercel](https://vercel.com/)
-
-## 📄 License
+## License
 
 Released under the [MIT License](LICENSE.md).
