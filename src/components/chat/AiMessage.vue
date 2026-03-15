@@ -64,9 +64,9 @@ async function copyMessage() {
 
     <!-- Content -->
     <div class="min-w-0 flex-1 space-y-2">
-      <div class="relative rounded-2xl rounded-tl-md bg-surface-2 px-4 py-3">
+      <div class="relative px-0 py-1">
         <!-- Action buttons -->
-        <div class="absolute right-2 top-2 flex gap-0.5 opacity-0 transition-all group-hover:opacity-100">
+        <div class="absolute right-0 top-1 flex gap-0.5 opacity-0 transition-all group-hover:opacity-100">
           <button
             v-if="message.id"
             @click="chat.toggleBookmark(message.id)"

@@ -42,7 +42,7 @@ const streamParsed = computed(() => {
 
     <!-- Streaming content -->
     <div class="min-w-0 flex-1">
-      <div class="rounded-2xl rounded-tl-md bg-surface-2 px-4 py-3">
+      <div class="px-0 py-1">
         <!-- Think block (active or completed) -->
         <ThinkBlock
           v-if="streamParsed.thinking !== null"

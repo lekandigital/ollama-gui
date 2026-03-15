@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { IconBrain, IconChevronRight } from '@tabler/icons-vue'
 import Markdown from '@/components/markdown/Markdown.vue'
 
 const props = withDefaults(
@@ -27,46 +26,46 @@ const isExpanded = computed(() => props.isStreaming || expanded.value)
 </script>
 
 <template>
-  <div class="my-2">
-    <!-- Toggle header -->
+  <div class="my-1">
+    <!-- Toggle button -->
     <button
       @click="expanded = !expanded"
-      class="flex w-full items-center gap-1.5 rounded-md px-1 py-1 text-xs transition-colors hover:bg-surface-3/50"
+      class="flex items-center gap-0.5"
       :class="isStreaming ? 'pointer-events-none' : 'cursor-pointer'"
     >
-      <IconChevronRight
-        :size="14"
-        class="flex-shrink-0 transition-transform duration-200"
-        :class="isExpanded ? 'rotate-90 text-accent-soft' : 'text-text-muted'"
-      />
-      <IconBrain
-        :size="14"
-        class="flex-shrink-0"
-        :class="isStreaming ? 'text-accent-soft animate-pulse' : 'text-text-muted'"
-      />
       <span
-        class="font-medium"
-        :class="isStreaming ? 'text-text-secondary' : 'text-text-muted'"
+        class="text-sm font-medium"
+        :class="isStreaming ? 'loading-shimmer' : 'text-text-secondary hover:text-text-primary'"
       >
         Thinking
-        <span v-if="isStreaming" class="thinking-dots">
-          <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
-        </span>
       </span>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        class="flex-shrink-0 transition-transform duration-200"
+        :class="[
+          isExpanded ? 'rotate-90' : '',
+          isStreaming ? 'text-text-muted' : 'text-text-muted',
+        ]"
+      >
+        <path
+          d="M7.53 3.78a.666.666 0 0 1 .836-.086l.105.085 5.75 5.75c.26.26.26.682 0 .942l-5.75 5.75a.666.666 0 0 1-.942-.942L12.81 10l-5.28-5.28-.085-.104a.666.666 0 0 1 .085-.837"
+        />
+      </svg>
     </button>
 
-    <!-- Thinking content -->
+    <!-- Expanded thinking content -->
     <Transition name="think-expand">
-      <div
-        v-if="isExpanded"
-        class="ml-[7px] mt-1 border-l-2 border-accent-soft/25 pl-4"
-      >
-        <div class="think-prose text-xs leading-relaxed text-text-muted">
+      <div v-if="isExpanded" class="mt-2 ml-0.5 border-l-2 border-[var(--color-border)] pl-4">
+        <div class="think-prose text-sm leading-relaxed text-text-secondary">
           <Markdown :content="content" />
         </div>
         <span
           v-if="isStreaming"
-          class="inline-block h-3.5 w-0.5 translate-y-0.5 animate-pulse bg-accent-soft"
+          class="result-thinking-cursor"
         />
       </div>
     </Transition>
@@ -74,29 +73,65 @@ const isExpanded = computed(() => props.isStreaming || expanded.value)
 </template>
 
 <style scoped>
-/* Animated thinking dots */
-.thinking-dots .dot {
-  animation: blink 1.4s infinite both;
-  opacity: 0;
-}
-.thinking-dots .dot:nth-child(1) {
-  animation-delay: 0s;
-}
-.thinking-dots .dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.thinking-dots .dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-@keyframes blink {
-  0%,
-  80%,
+/* ChatGPT-style shimmer animation for "Thinking" text */
+@keyframes loading-shimmer {
+  0% {
+    background-position: -100% 0;
+  }
   100% {
-    opacity: 0;
+    background-position: 250% 0;
   }
-  40% {
-    opacity: 1;
+}
+
+.loading-shimmer {
+  background: var(--color-text-muted)
+    linear-gradient(
+      90deg,
+      var(--color-text-muted) 0%,
+      var(--color-text-secondary) 40%,
+      var(--color-text-secondary) 60%,
+      var(--color-text-muted) 100%
+    );
+  background-position: -100% top;
+  -webkit-text-fill-color: transparent;
+  background-repeat: no-repeat;
+  background-size: 50% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: loading-shimmer 1.4s infinite;
+  display: inline-block;
+}
+
+.loading-shimmer:hover {
+  -webkit-text-fill-color: var(--color-text-primary);
+  background: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-shimmer {
+    animation: none;
   }
+}
+
+/* Pulsing dot cursor while thinking */
+@keyframes pulseSize {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+.result-thinking-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-text-muted);
+  animation: pulseSize 1.25s ease-in-out infinite;
+  margin-top: 4px;
 }
 
 /* Expand/collapse transition */
@@ -113,23 +148,23 @@ const isExpanded = computed(() => props.isStreaming || expanded.value)
 }
 .think-expand-enter-to,
 .think-expand-leave-from {
-  max-height: 3000px;
+  max-height: 5000px;
   opacity: 1;
 }
 
 /* Subdued markdown styles for thinking content */
 .think-prose :deep(p) {
-  @apply my-1 first:mt-0 last:mb-0;
+  @apply my-1.5 first:mt-0 last:mb-0;
 }
 .think-prose :deep(pre) {
-  @apply my-2 overflow-x-auto rounded-lg bg-surface-0 p-2 text-[11px];
+  @apply my-2 overflow-x-auto rounded-lg bg-surface-0 p-2 text-xs;
 }
 .think-prose :deep(code:not(pre code)) {
-  @apply rounded bg-surface-0 px-1 py-0.5 text-[11px];
+  @apply rounded bg-surface-0 px-1 py-0.5 text-xs;
 }
 .think-prose :deep(ul),
 .think-prose :deep(ol) {
-  @apply my-1 pl-4;
+  @apply my-1.5 pl-4;
 }
 .think-prose :deep(li) {
   @apply my-0.5;
@@ -137,16 +172,16 @@ const isExpanded = computed(() => props.isStreaming || expanded.value)
 .think-prose :deep(h1),
 .think-prose :deep(h2),
 .think-prose :deep(h3) {
-  @apply my-2 text-xs font-semibold text-text-secondary first:mt-0;
+  @apply my-2 text-sm font-semibold text-text-primary first:mt-0;
 }
 .think-prose :deep(blockquote) {
-  @apply my-1 border-l-2 border-[var(--color-border)] pl-2 italic;
+  @apply my-1.5 border-l-2 border-[var(--color-border)] pl-3 italic;
 }
 .think-prose :deep(a) {
-  @apply text-accent-soft underline;
+  @apply text-accent underline;
 }
 .think-prose :deep(table) {
-  @apply my-2 w-full border-collapse text-[11px];
+  @apply my-2 w-full border-collapse text-xs;
 }
 .think-prose :deep(th),
 .think-prose :deep(td) {
@@ -155,8 +190,6 @@ const isExpanded = computed(() => props.isStreaming || expanded.value)
 .think-prose :deep(th) {
   @apply bg-surface-3 font-medium;
 }
-
-/* Override code block styling to be more compact */
 .think-prose :deep(.code-block) {
   @apply my-2;
 }
