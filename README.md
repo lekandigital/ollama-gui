@@ -1,6 +1,8 @@
 # Ollama GUI v2
 
-A modern, feature-rich web interface for chatting with local LLMs through Ollama.
+A modern, feature-rich web interface for chatting with local LLMs through [Ollama](https://ollama.ai).
+
+![Dark Theme](docs/screenshots/desktop-dark.png)
 
 ## Features
 
@@ -83,7 +85,21 @@ If you have an NVIDIA GPU, uncomment the `deploy.resources` section in `compose.
 
 ## Screenshots
 
-<!-- Add screenshots here -->
+### Themes
+
+| Default Dark | Default Light |
+|:---:|:---:|
+| ![Dark](docs/screenshots/desktop-dark.png) | ![Light](docs/screenshots/desktop-light.png) |
+
+| Hacker | Paper |
+|:---:|:---:|
+| ![Hacker](docs/screenshots/desktop-hacker.png) | ![Paper](docs/screenshots/desktop-paper.png) |
+
+### Mobile
+
+| Dark | Light |
+|:---:|:---:|
+| <img src="docs/screenshots/mobile-dark.png" width="300"> | <img src="docs/screenshots/mobile-light.png" width="300"> |
 
 ## Tech Stack
 
