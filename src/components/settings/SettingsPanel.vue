@@ -136,6 +136,11 @@ const shortcuts = [
             <span class="ml-auto text-2xs text-text-muted">{{ preset.mode }}</span>
           </button>
         </div>
+        <label class="mt-3 flex items-center justify-between">
+          <span class="text-sm text-text-secondary">Follow system dark/light mode</span>
+          <input type="checkbox" v-model="settings.followSystemTheme"
+            class="h-4 w-4 rounded border-[var(--color-border)] bg-surface-2 text-accent focus:ring-accent" />
+        </label>
       </section>
 
       <!-- Appearance -->

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useLocalStorage } from '@vueuse/core'
+import { ref, onUnmounted } from 'vue'
 import type { ThemeMode, ThemePreset } from '@/types/settings'
 
 export const THEME_PRESETS: { id: ThemePreset; label: string; mode: ThemeMode }[] = [
@@ -10,9 +11,34 @@ export const THEME_PRESETS: { id: ThemePreset; label: string; mode: ThemeMode }[
   { id: 'high-contrast', label: 'High Contrast', mode: 'dark' },
 ]
 
+/** Map each theme preset to its system-preferred counterpart */
+const SYSTEM_DARK_MAP: Record<string, ThemePreset> = {
+  'default-light': 'default-dark',
+  'default-dark': 'default-dark',
+  'paper': 'default-dark',
+  'hacker': 'hacker',
+  'high-contrast': 'high-contrast',
+}
+const SYSTEM_LIGHT_MAP: Record<string, ThemePreset> = {
+  'default-dark': 'default-light',
+  'default-light': 'default-light',
+  'hacker': 'default-light',
+  'high-contrast': 'default-light',
+  'paper': 'paper',
+}
+
+function getSystemThemeMode(): ThemeMode {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function getDefaultPreset(): ThemePreset {
+  return getSystemThemeMode() === 'dark' ? 'default-dark' : 'default-light'
+}
+
 export const useSettingsStore = defineStore('settings', () => {
-  const theme = useLocalStorage<ThemeMode>('theme', 'dark')
-  const themePreset = useLocalStorage<ThemePreset>('themePreset', 'default-dark')
+  const theme = useLocalStorage<ThemeMode>('theme', getSystemThemeMode())
+  const themePreset = useLocalStorage<ThemePreset>('themePreset', getDefaultPreset())
+  const followSystemTheme = useLocalStorage('followSystemTheme', true)
   const enableMarkdown = useLocalStorage('markdown', true)
   const showSystemMessages = useLocalStorage('systemMessages', true)
   const historyLength = useLocalStorage('historyMessageLength', 10)
@@ -21,6 +47,9 @@ export const useSettingsStore = defineStore('settings', () => {
   const showMetrics = useLocalStorage('showMetrics', true)
   const showTokenCounter = useLocalStorage('showTokenCounter', true)
   const sendOnEnter = useLocalStorage('sendOnEnter', true)
+
+  // Track the user's explicit preset choice (for system theme switching)
+  const userPresetChoice = ref<ThemePreset>(themePreset.value)
 
   // Migrate old URL format
   if (
@@ -46,6 +75,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
   function setThemePreset(preset: ThemePreset) {
     themePreset.value = preset
+    userPresetChoice.value = preset
     const presetConfig = THEME_PRESETS.find((p) => p.id === preset)
     if (presetConfig) {
       theme.value = presetConfig.mode
@@ -62,9 +92,27 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  /** React to OS dark/light mode changes */
+  function onSystemThemeChange(e: MediaQueryListEvent) {
+    if (!followSystemTheme.value) return
+    const systemMode = e.matches ? 'dark' : 'light'
+    const mapped = systemMode === 'dark'
+      ? SYSTEM_DARK_MAP[userPresetChoice.value] ?? 'default-dark'
+      : SYSTEM_LIGHT_MAP[userPresetChoice.value] ?? 'default-light'
+    themePreset.value = mapped
+    theme.value = systemMode
+    applyTheme()
+  }
+
+  // Listen for OS theme changes
+  const mq = window.matchMedia('(prefers-color-scheme: dark)')
+  mq.addEventListener('change', onSystemThemeChange)
+  onUnmounted(() => mq.removeEventListener('change', onSystemThemeChange))
+
   return {
     theme,
     themePreset,
+    followSystemTheme,
     enableMarkdown,
     showSystemMessages,
     historyLength,

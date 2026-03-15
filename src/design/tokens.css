@@ -20,38 +20,8 @@
   --transition-slow: 300ms ease;
 }
 
-/* ========== Theme: Default Dark (navy/blue) ========== */
+/* ========== Theme: Default Light (warm white) — the :root default ========== */
 :root,
-.dark,
-.theme-default-dark {
-  --color-surface-0: #0a0f1a;
-  --color-surface-1: #111827;
-  --color-surface-2: #1a2235;
-  --color-surface-3: #243049;
-
-  --color-accent: #3b82f6;
-  --color-accent-soft: #60a5fa;
-  --color-accent-muted: #1e3a5f;
-
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #475569;
-
-  --color-border: #1e293b;
-  --color-border-hover: #334155;
-
-  --color-user-bubble: #3b82f6;
-  --color-user-bubble-text: #ffffff;
-
-  --color-scrollbar: #334155;
-  --color-scrollbar-hover: #475569;
-}
-
-/* ========== Theme: Default Light (warm white) ========== */
 .light,
 .theme-default-light {
   --color-surface-0: #faf9f7;
@@ -79,6 +49,36 @@
 
   --color-scrollbar: #cbd5e1;
   --color-scrollbar-hover: #94a3b8;
+}
+
+/* ========== Theme: Default Dark (navy/blue) ========== */
+.dark,
+.theme-default-dark {
+  --color-surface-0: #0a0f1a;
+  --color-surface-1: #111827;
+  --color-surface-2: #1a2235;
+  --color-surface-3: #243049;
+
+  --color-accent: #3b82f6;
+  --color-accent-soft: #60a5fa;
+  --color-accent-muted: #1e3a5f;
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #475569;
+
+  --color-border: #1e293b;
+  --color-border-hover: #334155;
+
+  --color-user-bubble: #3b82f6;
+  --color-user-bubble-text: #ffffff;
+
+  --color-scrollbar: #334155;
+  --color-scrollbar-hover: #475569;
 }
 
 /* ========== Theme: Hacker (green on black) ========== */
